@@ -1,3 +1,4 @@
+package com.example.lsqrd.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,8 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lsqrd.data.Entry
-import com.example.lsqrd.ui.AddEntryDialog
-import com.example.lsqrd.ui.EntryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
