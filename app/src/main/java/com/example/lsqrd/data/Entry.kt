@@ -9,7 +9,7 @@ data class Entry(
     val id: Long = 0,
     val siteName: String,
     val username : String,
-    val encryptedPassword: String,
+    val password: String,
     val notes: String = "",
     val createdAt: Long = System.currentTimeMillis()
 )

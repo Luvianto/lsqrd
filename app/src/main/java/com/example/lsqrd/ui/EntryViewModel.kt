@@ -27,7 +27,7 @@ class EntryViewModel(application: Application) : AndroidViewModel(application) {
                 Entry(
                     siteName = siteName,
                     username = username,
-                    encryptedPassword = password,
+                    password = password,
                     notes = notes
                 )
             )
