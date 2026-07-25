@@ -5,21 +5,31 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [Entry::class], version = 1, exportSchema = false)
-abstract class AppDatabase: RoomDatabase() {
-    abstract fun entryDao(): EntryDao
+@Database(
+    entities = [
+        Vault::class,
+        Credential::class,
+        CredentialField::class
+    ],
+    version = 2,
+    exportSchema = false
+)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun vaultDao(): VaultDao
+    abstract fun credentialDao(): CredentialDao
+    abstract fun credentialFieldDao(): CredentialFieldDao
 
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        fun getDatabase(context: Context): AppDatabase{
-            return INSTANCE ?: synchronized(this){
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "lsqrd_db"
-                ).build()
+                ).fallbackToDestructiveMigration(false).build()
                 INSTANCE = instance
                 instance
             }
