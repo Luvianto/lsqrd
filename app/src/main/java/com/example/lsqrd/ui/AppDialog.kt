@@ -33,3 +33,27 @@ fun AddVaultDialog(onDismiss: () -> Unit, onConfirm: (name: String) -> Unit) {
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
+
+@Composable
+fun AddCredentialDialog(onDismiss: () -> Unit, onConfirm: (name: String) -> Unit) {
+    var name by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("New Credential") },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Credential name") },
+                supportingText = { Text("e.g Instagram, Facebook, Linkedin") },
+                singleLine = true
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(name.trim()) }, enabled = name.isNotBlank()) {
+                Text("Add")
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
+}
