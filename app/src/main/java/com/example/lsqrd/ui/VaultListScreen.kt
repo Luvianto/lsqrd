@@ -75,6 +75,13 @@ fun VaultListScreen(
     }
 
     if (showAddDialog) {
+        AddVaultDialog(
+            onDismiss = {showAddDialog = false},
+            onConfirm = {name ->
+                viewModel.addVault(name)
+                showAddDialog = false
+            }
+        ) 
     }
 }
 
