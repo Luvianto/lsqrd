@@ -93,6 +93,16 @@ fun CredentialDetailScreen(
             }
         }
     }
+
+    if (showAddDialog) {
+        AddFieldDialog(
+            onDismiss = { showAddDialog = false },
+            onConfirm = { label, value, isSecret ->
+                viewModel.addField(credentialId, label, value, isSecret)
+                showAddDialog = false
+            }
+        )
+    }
 }
 
 @Composable
