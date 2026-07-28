@@ -25,7 +25,7 @@ fun AppNavGraph(appViewModel: AppViewModel = viewModel()) {
             )
         }
         composable(
-            "crendentials/{vaultId}",
+            "credentials/{vaultId}",
             arguments = listOf(navArgument("vaultId") { type = NavType.LongType })
         ) { backStackEntry ->
             val vaultId = backStackEntry.arguments!!.getLong("vaultId")
@@ -33,7 +33,7 @@ fun AppNavGraph(appViewModel: AppViewModel = viewModel()) {
                 viewModel = appViewModel,
                 vaultId = vaultId,
                 onCredentialClick = { credentialId ->
-                    navController.navigate("field/$credentialId")
+                    navController.navigate("fields/$credentialId")
                 },
                 onBack = { navController.popBackStack() }
             )
