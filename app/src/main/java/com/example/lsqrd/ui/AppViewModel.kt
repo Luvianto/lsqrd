@@ -37,6 +37,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         vaultDao.delete(vault)
     }
 
+    fun updateVault(vault: Vault) = viewModelScope.launch {
+        vaultDao.update(vault)
+    }
+
     // ── Credentials ──────────────────────────────────────
 
     fun getCredentials(vaultId: Long): Flow<List<Credential>> =
@@ -48,6 +52,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteCredential(credential: Credential) = viewModelScope.launch {
         credentialDao.delete(credential)
+    }
+
+    fun updateCredential(credential: Credential) = viewModelScope.launch {
+        credentialDao.update(credential)
     }
 
     // ── Fields ────────────────────────────────────────────
@@ -69,5 +77,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteField(field: CredentialField) = viewModelScope.launch {
         credentialFieldDao.delete(field)
+    }
+
+    fun updateField(field: CredentialField) = viewModelScope.launch {
+        credentialFieldDao.update(field)
     }
 }
