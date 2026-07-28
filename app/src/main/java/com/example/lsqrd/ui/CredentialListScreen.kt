@@ -48,6 +48,7 @@ fun CredentialListScreen(
     }
 
     var showAddDialog by remember { mutableStateOf(false) }
+    var credentialToDelete by remember { mutableStateOf<Credential?>(null) }
 
     Scaffold(
         topBar = {
@@ -87,20 +88,33 @@ fun CredentialListScreen(
                 items(credentials, key = { it.id }) { credential ->
                     CredentialRow(
                         credential = credential,
-                        onClick = {onCredentialClick(credential.id)},
-                        onDelete = {viewModel.deleteCredential(credential)}
+                        onClick = { onCredentialClick(credential.id) },
+                        onDelete = { credentialToDelete = credential }
                     )
                 }
             }
         }
     }
-    if(showAddDialog){
+
+    if (showAddDialog) {
         AddCredentialDialog(
-            onDismiss = {showAddDialog = false},
-            onConfirm = { name->
+            onDismiss = { showAddDialog = false },
+            onConfirm = { name ->
                 viewModel.addCredential(vaultId, name)
                 showAddDialog = false
             }
+        )
+    }
+
+    credentialToDelete?.let { credential ->
+        ConfirmDeleteDialog(
+            title = "Delete credential",
+            message = "Delete \"${credential.name}\", All it's field will be deleted too.",
+            onConfirm = {
+                viewModel.deleteCredential(credential)
+                credentialToDelete = null
+            },
+            onDismiss = { credentialToDelete = null }
         )
     }
 }
@@ -110,13 +124,13 @@ fun CredentialRow(
     credential: Credential, onClick: () -> Unit, onDelete: () -> Unit
 ) {
     ListItem(
-        headlineContent = {Text(credential.name, fontWeight = FontWeight.Medium)},
+        headlineContent = { Text(credential.name, fontWeight = FontWeight.Medium) },
         trailingContent = {
             IconButton(onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete credential")
             }
         },
-        modifier = Modifier.clickable{onClick()}
+        modifier = Modifier.clickable { onClick() }
     )
     HorizontalDivider()
 }

@@ -52,6 +52,8 @@ fun CredentialDetailScreen(
 
     var showAddDialog by remember { mutableStateOf(false) }
 
+    var fieldToDelete by remember { mutableStateOf<CredentialField?>(null) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -99,7 +101,7 @@ fun CredentialDetailScreen(
                                 visibleFieldsId + field.id
                             }
                         },
-                        onDelete = { viewModel.deleteField(field) }
+                        onDelete = { fieldToDelete = field }
                     )
                 }
             }
@@ -113,6 +115,18 @@ fun CredentialDetailScreen(
                 viewModel.addField(credentialId, label, value, isSecret)
                 showAddDialog = false
             }
+        )
+    }
+
+    fieldToDelete?.let { field ->
+        ConfirmDeleteDialog(
+            title = "Delete field",
+            message = "Delete \"${field.label}\"?",
+            onConfirm = {
+                viewModel.deleteField(field)
+                fieldToDelete = null
+            },
+            onDismiss = { fieldToDelete = null }
         )
     }
 }

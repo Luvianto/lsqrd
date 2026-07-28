@@ -37,6 +37,7 @@ fun VaultListScreen(
 ) {
     val vaults by viewModel.vaults.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
+    var vaultToDelete by remember { mutableStateOf<Vault?>(null) }
 
     Scaffold(
         topBar = {
@@ -67,7 +68,7 @@ fun VaultListScreen(
                     VaultRow(
                         vault = vault,
                         onClick = { onVaultClick(vault.id) },
-                        onDelete = { viewModel.deleteVault(vault) }
+                        onDelete = { vaultToDelete = vault }
                     )
                 }
             }
@@ -81,6 +82,18 @@ fun VaultListScreen(
                 viewModel.addVault(name)
                 showAddDialog = false
             }
+        )
+    }
+
+    vaultToDelete?.let { vault ->
+        ConfirmDeleteDialog(
+            title = "Delete vault",
+            message = "Delete \"${vault.name}\"? This will also delete all it's credentials and fields.",
+            onConfirm = {
+                viewModel.deleteVault(vault)
+                vaultToDelete = null
+            },
+            onDismiss = { vaultToDelete = null }
         )
     }
 }
