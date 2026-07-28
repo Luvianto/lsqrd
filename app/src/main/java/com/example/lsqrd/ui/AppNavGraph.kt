@@ -39,5 +39,16 @@ fun AppNavGraph(appViewModel: AppViewModel = viewModel()) {
                 onBack = { navController.popBackStack() }
             )
         }
+        composable(
+            "fields/{credentialId}",
+            arguments = listOf(navArgument("credentialId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val credentialId = backStackEntry.arguments!!.getLong("credentialId")
+            CredentialDetailScreen(
+                viewModel = appViewModel,
+                credentialId = credentialId,
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
 }
