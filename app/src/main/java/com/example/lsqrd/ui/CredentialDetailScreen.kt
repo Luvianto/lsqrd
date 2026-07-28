@@ -48,7 +48,7 @@ fun CredentialDetailScreen(
 
     val fields = credentialWithFields?.fields ?: emptyList()
 
-    val visibleFieldsId by remember(credentialId) { mutableStateOf(emptySet<Long>()) }
+    var visibleFieldsId by remember(credentialId) { mutableStateOf(emptySet<Long>()) }
 
     var showAddDialog by remember { mutableStateOf(false) }
 
@@ -89,6 +89,18 @@ fun CredentialDetailScreen(
             ) {
                 items(fields, key = { it.id }) { field ->
                     val isRevealed = field.id in visibleFieldsId
+                    FieldRow(
+                        field = field,
+                        isRevealed = isRevealed,
+                        onToggleVisibility = {
+                            visibleFieldsId = if (isRevealed) {
+                                visibleFieldsId - field.id
+                            } else {
+                                visibleFieldsId + field.id
+                            }
+                        },
+                        onDelete = { viewModel.deleteField(field) }
+                    )
                 }
             }
         }
