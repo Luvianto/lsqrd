@@ -2,6 +2,7 @@ package com.example.lsqrd.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -49,6 +51,7 @@ fun CredentialListScreen(
 
     var showAddDialog by remember { mutableStateOf(false) }
     var credentialToDelete by remember { mutableStateOf<Credential?>(null) }
+    var credentialToEdit by remember { mutableStateOf<Credential?>(null) }
 
     Scaffold(
         topBar = {
@@ -89,6 +92,7 @@ fun CredentialListScreen(
                     CredentialRow(
                         credential = credential,
                         onClick = { onCredentialClick(credential.id) },
+                        onEdit = { credentialToEdit = credential },
                         onDelete = { credentialToDelete = credential }
                     )
                 }
@@ -117,17 +121,33 @@ fun CredentialListScreen(
             onDismiss = { credentialToDelete = null }
         )
     }
+
+    credentialToEdit?.let { credential ->
+        EditCredentialDialog (
+            currentName = credential.name,
+            onDismiss = { credentialToEdit = null },
+            onConfirm = { newName ->
+                viewModel.updateCredential(credential.copy(name = newName))
+                credentialToEdit = null
+            }
+        )
+    }
 }
 
 @Composable
 fun CredentialRow(
-    credential: Credential, onClick: () -> Unit, onDelete: () -> Unit
+    credential: Credential, onClick: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit
 ) {
     ListItem(
         headlineContent = { Text(credential.name, fontWeight = FontWeight.Medium) },
         trailingContent = {
-            IconButton(onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete credential")
+            Row {
+                IconButton(onEdit) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit credential")
+                }
+                IconButton(onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete credential")
+                }
             }
         },
         modifier = Modifier.clickable { onClick() }

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -58,6 +59,7 @@ fun CredentialDetailScreen(
     var showAddDialog by remember { mutableStateOf(false) }
 
     var fieldToDelete by remember { mutableStateOf<CredentialField?>(null) }
+    var fieldToEdit by remember { mutableStateOf<CredentialField?>(null) }
 
     Scaffold(
         topBar = {
@@ -106,6 +108,7 @@ fun CredentialDetailScreen(
                                 visibleFieldsId + field.id
                             }
                         },
+                        onEdit = { fieldToEdit = field },
                         onDelete = { fieldToDelete = field }
                     )
                 }
@@ -134,6 +137,19 @@ fun CredentialDetailScreen(
             onDismiss = { fieldToDelete = null }
         )
     }
+
+    fieldToEdit?.let { field ->
+        EditFieldDialog(
+            currentLabel = field.label,
+            currentValue = field.value,
+            currentIsSecret = field.isSecret,
+            onDismiss = { fieldToEdit = null },
+            onConfirm = { label, value, isSecret ->
+                viewModel.updateField(field.copy(label = label, value = value, isSecret = isSecret))
+                fieldToEdit = null
+            }
+        )
+    }
 }
 
 @Composable
@@ -141,6 +157,7 @@ fun FieldRow(
     field: CredentialField,
     isRevealed: Boolean,
     onToggleVisibility: () -> Unit,
+    onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     val clipboardManager = LocalClipboardManager.current
@@ -161,6 +178,9 @@ fun FieldRow(
                     TextButton(onClick = onToggleVisibility) {
                         Text(if (isRevealed) "Hide" else "Show")
                     }
+                }
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit Field")
                 }
                 IconButton(onClick = onDelete) {
                     Icon(Icons.Default.Delete, contentDescription = "Delete Field")

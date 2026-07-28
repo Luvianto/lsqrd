@@ -2,6 +2,7 @@ package com.example.lsqrd.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -38,6 +40,7 @@ fun VaultListScreen(
     val vaults by viewModel.vaults.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     var vaultToDelete by remember { mutableStateOf<Vault?>(null) }
+    var vaultToEdit by remember { mutableStateOf<Vault?>(null) }
 
     Scaffold(
         topBar = {
@@ -68,6 +71,7 @@ fun VaultListScreen(
                     VaultRow(
                         vault = vault,
                         onClick = { onVaultClick(vault.id) },
+                        onEdit = { vaultToEdit = vault },
                         onDelete = { vaultToDelete = vault }
                     )
                 }
@@ -96,15 +100,31 @@ fun VaultListScreen(
             onDismiss = { vaultToDelete = null }
         )
     }
+
+    vaultToEdit?.let { vault ->
+        EditVaultDialog(
+            currentName = vault.name,
+            onDismiss = { vaultToEdit = null },
+            onConfirm = { newName ->
+                viewModel.updateVault(vault.copy(name = newName))
+                vaultToEdit = null
+            }
+        )
+    }
 }
 
 @Composable
-fun VaultRow(vault: Vault, onClick: () -> Unit, onDelete: () -> Unit) {
+fun VaultRow(vault: Vault, onClick: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
     ListItem(
         headlineContent = { Text(vault.name, fontWeight = FontWeight.Medium) },
         trailingContent = {
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete Vault")
+            Row {
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit Vault")
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete Vault")
+                }
             }
         },
         modifier = Modifier.clickable { onClick() }
