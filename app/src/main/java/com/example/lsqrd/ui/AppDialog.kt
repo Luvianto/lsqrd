@@ -140,3 +140,117 @@ fun ConfirmDeleteDialog(
         }
     )
 }
+
+@Composable
+fun EditVaultDialog(
+    currentName: String,
+    onDismiss: () -> Unit,
+    onConfirm: (newName: String) -> Unit
+) {
+    var name by remember { mutableStateOf(currentName) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit vault") },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Vault name") },
+                singleLine = true
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm(name.trim())
+            }, enabled = name.isNotBlank()) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
+
+@Composable
+fun EditCredentialDialog(
+    currentName: String,
+    onDismiss: () -> Unit,
+    onConfirm: (newName: String) -> Unit
+) {
+    var name by remember { mutableStateOf(currentName) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit credential") },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Credential name") },
+                singleLine = true
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm(name.trim())
+            }, enabled = name.isNotBlank()) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
+
+@Composable
+fun EditFieldDialog(
+    currentLabel: String,
+    currentValue: String,
+    currentIsSecret: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (label: String, value: String, isSecret: Boolean) -> Unit
+) {
+    var label by remember { mutableStateOf(currentLabel) }
+    var value by remember { mutableStateOf(currentValue) }
+    var isSecret by remember { mutableStateOf(currentIsSecret) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Field") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = label,
+                    onValueChange = { label = it },
+                    label = { Text("Label") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = { value = it },
+                    label = { Text("Value") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Keep hidden", modifier = Modifier.weight(1f))
+                    Switch(checked = isSecret, onCheckedChange = { isSecret = it })
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(label.trim(), value, isSecret) },
+                enabled = label.isNotBlank() && value.isNotBlank()
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
+}
