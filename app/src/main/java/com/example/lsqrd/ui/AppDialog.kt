@@ -112,6 +112,6 @@ fun AddFieldDialog(
                 Text("Add")
             }
         },
-        dismissButton = { TextButton(onClick = { onDismiss }) { Text("Cancel") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
