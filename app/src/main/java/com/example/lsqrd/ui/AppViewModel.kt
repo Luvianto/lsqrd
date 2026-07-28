@@ -67,7 +67,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             )
         }
 
-    fun deleteFields(field: CredentialField) = viewModelScope.launch {
+    fun deleteField(field: CredentialField) = viewModelScope.launch {
         credentialFieldDao.delete(field)
     }
 }
