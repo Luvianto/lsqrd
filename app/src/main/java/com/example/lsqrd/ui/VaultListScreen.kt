@@ -40,7 +40,7 @@ fun VaultListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("lsqrd") })
+            TopAppBar(title = { Text("Lsqrd") })
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
