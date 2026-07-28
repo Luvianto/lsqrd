@@ -109,7 +109,7 @@ fun CredentialListScreen(
     credentialToDelete?.let { credential ->
         ConfirmDeleteDialog(
             title = "Delete credential",
-            message = "Delete \"${credential.name}\", All it's field will be deleted too.",
+            message = "Delete \"${credential.name}\"? All its fields will also be deleted.",
             onConfirm = {
                 viewModel.deleteCredential(credential)
                 credentialToDelete = null

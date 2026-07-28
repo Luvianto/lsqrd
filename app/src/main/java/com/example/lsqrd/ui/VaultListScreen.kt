@@ -88,7 +88,7 @@ fun VaultListScreen(
     vaultToDelete?.let { vault ->
         ConfirmDeleteDialog(
             title = "Delete vault",
-            message = "Delete \"${vault.name}\"? This will also delete all it's credentials and fields.",
+            message = "Delete \"${vault.name}\"? This will also delete all its credentials and fields.",
             onConfirm = {
                 viewModel.deleteVault(vault)
                 vaultToDelete = null
