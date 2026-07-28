@@ -7,10 +7,12 @@ import com.example.lsqrd.data.AppDatabase
 import com.example.lsqrd.data.Credential
 import com.example.lsqrd.data.CredentialField
 import com.example.lsqrd.data.CredentialWithFields
+import com.example.lsqrd.data.CryptoManager
 import com.example.lsqrd.data.Vault
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -61,7 +63,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     // ── Fields ────────────────────────────────────────────
 
     fun getCredentialWithFields(credentialId: Long): Flow<CredentialWithFields> =
-        credentialDao.getCredentialWithFields(credentialId)
+        credentialDao.getCredentialWithFields(credentialId).map { credentialWithFields ->
+            credentialWithFields.copy(fields = credentialWithFields.fields.map { field ->
+                field.copy(value = CryptoManager.decrypt(field.value))
+            })
+        }
 
     fun addField(credentialId: Long, label: String, value: String, isSecret: Boolean) =
         viewModelScope.launch {
@@ -69,7 +75,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 CredentialField(
                     credentialId = credentialId,
                     label = label,
-                    value = value,
+                    value = CryptoManager.encrypt(value),
                     isSecret = isSecret
                 )
             )
@@ -80,6 +86,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateField(field: CredentialField) = viewModelScope.launch {
-        credentialFieldDao.update(field)
+        credentialFieldDao.update(field.copy(value = CryptoManager.encrypt(field.value)))
     }
 }
