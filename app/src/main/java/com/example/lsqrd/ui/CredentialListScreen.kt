@@ -10,8 +10,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -20,6 +22,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
@@ -29,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.example.lsqrd.data.Credential
 import com.example.lsqrd.data.Vault
@@ -52,17 +57,56 @@ fun CredentialListScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var credentialToDelete by remember { mutableStateOf<Credential?>(null) }
     var credentialToEdit by remember { mutableStateOf<Credential?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
+    var isSearchActive by remember { mutableStateOf(false) }
+
+    val filteredCredentials = if (searchQuery.isBlank()) {
+        credentials
+    } else {
+        credentials.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(vault?.name ?: "Credentials") },
+                title = {
+                    if (!isSearchActive) {
+                        Text(vault?.name ?: "Credentials")
+                    } else {
+                        TextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = { Text("Search credentials..") },
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent
+                            )
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
                         )
+                    }
+                },
+                actions = {
+                    if (!isSearchActive) {
+                        IconButton(onClick = { isSearchActive = true }) {
+                            Icon(Icons.Default.Search, contentDescription = "Search")
+                        }
+                    } else {
+                        IconButton(onClick = {
+                            searchQuery = ""
+                            isSearchActive = false
+                        }) {
+                            Icon(Icons.Default.Close, contentDescription = "Close search")
+                        }
                     }
                 }
             )
@@ -73,7 +117,7 @@ fun CredentialListScreen(
             }
         }
     ) { innerPadding ->
-        if (credentials.isEmpty()) {
+        if (filteredCredentials.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -88,7 +132,7 @@ fun CredentialListScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                items(credentials, key = { it.id }) { credential ->
+                items(filteredCredentials, key = { it.id }) { credential ->
                     CredentialRow(
                         credential = credential,
                         onClick = { onCredentialClick(credential.id) },
@@ -123,7 +167,7 @@ fun CredentialListScreen(
     }
 
     credentialToEdit?.let { credential ->
-        EditCredentialDialog (
+        EditCredentialDialog(
             currentName = credential.name,
             onDismiss = { credentialToEdit = null },
             onConfirm = { newName ->
