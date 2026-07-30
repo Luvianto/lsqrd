@@ -4,7 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -18,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.lsqrd.data.PasswordGenerator
 
 @Composable
 fun AddVaultDialog(onDismiss: () -> Unit, onConfirm: (name: String) -> Unit) {
@@ -94,7 +99,12 @@ fun AddFieldDialog(
                     onValueChange = { value = it },
                     label = { Text("Value") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        IconButton(onClick = { value = PasswordGenerator.generate() }) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Generate")
+                        }
+                    }
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -232,7 +242,12 @@ fun EditFieldDialog(
                     onValueChange = { value = it },
                     label = { Text("Value") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        IconButton(onClick = { value = PasswordGenerator.generate() }) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Generate")
+                        }
+                    }
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
