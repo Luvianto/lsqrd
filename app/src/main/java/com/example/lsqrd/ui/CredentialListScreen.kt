@@ -124,7 +124,10 @@ fun CredentialListScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No credentials yet. Tap + to add one.")
+                Text(
+                    if (searchQuery.isBlank()) "No credentials yet. Tap + to add one."
+                    else "No results for \"${searchQuery}\""
+                )
             }
         } else {
             LazyColumn(
