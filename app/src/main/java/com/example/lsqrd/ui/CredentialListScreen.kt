@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -59,11 +60,16 @@ fun CredentialListScreen(
     var credentialToEdit by remember { mutableStateOf<Credential?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
+    var sortAscending by remember { mutableStateOf(true) }
 
-    val filteredCredentials = if (searchQuery.isBlank()) {
-        credentials
-    } else {
-        credentials.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    val filteredCredentials = credentials.filter {
+        searchQuery.isBlank() || it.name.contains(
+            searchQuery,
+            ignoreCase = true
+        )
+    }.let { list ->
+        if (sortAscending) list.sortedBy { it.name.lowercase() }
+        else list.sortedByDescending { it.name.lowercase() }
     }
 
     Scaffold(
@@ -97,6 +103,9 @@ fun CredentialListScreen(
                 },
                 actions = {
                     if (!isSearchActive) {
+                        TextButton(onClick = {sortAscending = !sortAscending}) {
+                            Text(if (sortAscending)"A→Z" else "Z→A")
+                        }
                         IconButton(onClick = { isSearchActive = true }) {
                             Icon(Icons.Default.Search, contentDescription = "Search")
                         }

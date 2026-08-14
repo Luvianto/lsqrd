@@ -19,6 +19,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -41,10 +42,24 @@ fun VaultListScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var vaultToDelete by remember { mutableStateOf<Vault?>(null) }
     var vaultToEdit by remember { mutableStateOf<Vault?>(null) }
+    var sortAscending by remember { mutableStateOf(true) }
+
+    val sortedVaults = if (sortAscending) {
+        vaults.sortedBy { it.name.lowercase() }
+    } else {
+        vaults.sortedByDescending { it.name.lowercase() }
+    }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Lsqrd") })
+            TopAppBar(
+                title = { Text("Lsqrd") },
+                actions = {
+                    TextButton(onClick = {sortAscending = !sortAscending}) {
+                        Text(if (sortAscending)"A→Z" else "Z→A")
+                    }
+                }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
@@ -52,7 +67,7 @@ fun VaultListScreen(
             }
         }
     ) { innerPadding ->
-        if (vaults.isEmpty()) {
+        if (sortedVaults.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -67,7 +82,7 @@ fun VaultListScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                items(vaults, key = { it.id }) { vault ->
+                items(sortedVaults, key = { it.id }) { vault ->
                     VaultRow(
                         vault = vault,
                         onClick = { onVaultClick(vault.id) },
