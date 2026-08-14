@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import net.sqlcipher.database.SupportFactory
 
 @Database(
     entities = [
@@ -23,13 +24,30 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        private const val DB_NAME = "lsqrd_db"
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
+                val appContext = context.applicationContext
+
+                if(!DatabaseKeyManager.isMigrated(appContext)){
+                    appContext.deleteDatabase(DB_NAME)
+                    DatabaseKeyManager.markMigrated(appContext)
+                }
+
+                val passPhrase = DatabaseKeyManager.getPassPhrase(appContext)
+                val factory = SupportFactory(passPhrase)
+                passPhrase.fill(0)
+
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "lsqrd_db"
-                ).fallbackToDestructiveMigration(false).build()
+                    DB_NAME
+                )
+                    .openHelperFactory(factory)
+                    .fallbackToDestructiveMigration(false)
+                    .build()
+
                 INSTANCE = instance
                 instance
             }
