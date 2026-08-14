@@ -61,4 +61,5 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.fragment.ktx)
+    implementation(libs.sqlcipher)
 }
