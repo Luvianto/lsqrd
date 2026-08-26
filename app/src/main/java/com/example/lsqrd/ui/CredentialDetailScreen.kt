@@ -3,6 +3,7 @@ package com.example.lsqrd.ui
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -167,10 +169,21 @@ fun FieldRow(
     ListItem(
         headlineContent = { Text(field.label, fontWeight = FontWeight.Medium) },
         supportingContent = {
-            Text(displayValue, modifier = Modifier.clickable {
-                clipboardManager.setText(AnnotatedString(field.value))
-                Toast.makeText(context, "${field.label} copied", Toast.LENGTH_SHORT).show()
-            })
+            Column {
+                Text(
+                    text = displayValue,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.clickable {
+                        clipboardManager.setText(AnnotatedString(field.value))
+                        Toast.makeText(context, "${field.label} copied", Toast.LENGTH_SHORT).show()
+                    }
+                )
+                Text(
+                    text = "Tap to copy",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                )
+            }
         },
         trailingContent = {
             Row {
