@@ -44,7 +44,7 @@ fun LockScreen(onUnlockRequest: () -> Unit) {
                 Icon(
                     Icons.Default.Lock,
                     contentDescription = "Locked",
-                    modifier = Modifier.size(72.dp),
+                    modifier = Modifier.size(44.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
