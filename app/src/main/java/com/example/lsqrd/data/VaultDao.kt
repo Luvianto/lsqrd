@@ -15,11 +15,11 @@ interface VaultDao {
     fun getAllVaults(): Flow<List<Vault>>
 
     @Query("SELECT * FROM vaults WHERE id = :vaultId")
-    fun getVaultById(vaultId: Long): Flow<Vault>
+    fun getVaultById(vaultId: Long): Flow<Vault?>
 
     @Transaction
     @Query("SELECT * FROM vaults WHERE id = :vaultId")
-    fun getVaultWithCredetials(vaultId: Long): Flow<VaultWithCredentials>
+    fun getVaultWithCredetials(vaultId: Long): Flow<VaultWithCredentials?>
 
     @Insert
     suspend fun insert(vault: Vault)
