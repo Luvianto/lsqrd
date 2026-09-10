@@ -52,7 +52,7 @@ fun LockScreen(onUnlockRequest: () -> Unit) {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                "Lsqrd",
+                "lsqrd",
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
