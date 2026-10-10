@@ -1,5 +1,9 @@
 package com.example.lsqrd.ui
 
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +21,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -37,9 +44,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.lsqrd.data.Vault
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +64,42 @@ fun VaultListScreen(
     var vaultToEdit by remember { mutableStateOf<Vault?>(null) }
     var sortAscending by remember { mutableStateOf(true) }
 
+    val context = LocalContext.current
+    var showMenu by remember { mutableStateOf(false) }
+    var showExportDialog by remember { mutableStateOf(false) }
+    var showImportDialog by remember { mutableStateOf(false) }
+    var exportPassphrase by remember { mutableStateOf("") }
+    var pendingImportUri by remember { mutableStateOf<Uri?>(null) }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream")
+    ) { uri ->
+        if(uri != null){
+            viewModel.exportAll(
+                passphrase = exportPassphrase,
+                uri = uri,
+                context = context,
+                onSuccess = {
+                    exportPassphrase = ""
+                    Toast.makeText(context, "Export successful", Toast.LENGTH_SHORT).show()
+                },
+                onError = {error ->
+                    exportPassphrase = ""
+                    Toast.makeText(context, "Export failed: $error", Toast.LENGTH_LONG).show()
+                }
+            )
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null){
+            pendingImportUri = uri
+            showImportDialog = true
+        }
+    }
+
     val sortedVaults = if (sortAscending) {
         vaults.sortedBy { it.name.lowercase() }
     } else {
@@ -62,10 +109,34 @@ fun VaultListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Lsqrd") },
+                title = { Text("lsqrd") },
                 actions = {
                     TextButton(onClick = { sortAscending = !sortAscending }) {
                         Text(if (sortAscending) "A→Z" else "Z→A")
+                    }
+                    Box{
+                        IconButton(onClick = {showMenu = true}) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = {showMenu = false}
+                        ) {
+                            DropdownMenuItem(
+                                text = {Text("Export")},
+                                onClick = {
+                                    showMenu = false
+                                    showExportDialog = true
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = {Text("Import")},
+                                onClick = {
+                                    showMenu = false
+                                    importLauncher.launch(arrayOf("*/*"))
+                                }
+                            )
+                        }
                     }
                 }
             )
@@ -131,6 +202,51 @@ fun VaultListScreen(
                 showAddDialog = false
             }
         )
+    }
+
+    if(showExportDialog){
+        ExportDialog(
+            onDismiss = { showExportDialog = false },
+            onExport = {passphrase ->
+                showExportDialog = false
+                exportPassphrase = passphrase
+                val date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                exportLauncher.launch("lsqrd-backup-$date.lsqrd")
+            }
+        )
+    }
+
+    pendingImportUri?.let { uri ->
+        if (showImportDialog){
+            val fileName = uri.lastPathSegment?:"backup file"
+            ImportDialog(
+                fileName = fileName,
+                onDismiss = {
+                    showImportDialog = false
+                    pendingImportUri = null
+                },
+                onImport = { passphrase ->
+                    showImportDialog = false
+                    viewModel.importAll(
+                        passphrase = passphrase,
+                        uri = uri,
+                        context = context,
+                        onSuccess = { result ->
+                            pendingImportUri = null
+                            Toast.makeText(
+                                context,
+                                "Imported ${result.vaultsImported} vault(s), ${result.credentialsImported} credential(s)",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        },
+                        onError = {error ->
+                            pendingImportUri = null
+                            Toast.makeText(context, "Import failed: $error", Toast.LENGTH_LONG).show()
+                        }
+                    )
+                }
+            )
+        }
     }
 
     vaultToDelete?.let { vault ->
