@@ -17,7 +17,7 @@ import javax.crypto.spec.SecretKeySpec
 object ExportManager {
 
     private const val MAGIC = "LSQRD001"
-    private const val PBKDF2_ITERATIONS = 200_00
+    private const val PBKDF2_ITERATIONS = 200_000
     private const val KEY_LENGTH = 256
     private const val SALT_SIZE = 16
     private const val IV_SIZE = 12
