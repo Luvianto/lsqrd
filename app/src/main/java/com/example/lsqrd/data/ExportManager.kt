@@ -62,6 +62,7 @@ object ExportManager {
     }
 
     fun decrypt(passphrase: String, uri: Uri, context: Context): BackupPayload {
+        if (passphrase.isBlank()) throw SecurityException("Wrong passphrase or corrupted file")
         val content = context.contentResolver.openInputStream(uri)?.use { stream ->
             stream.readBytes().toString(Charsets.UTF_8)
         } ?: throw IOException("Could not open input stream for URI")
