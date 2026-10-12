@@ -90,7 +90,7 @@ class ExportManagerTest {
 
     @Test
     fun decrypt_with_empty_passphrase_throws_SecurityException() {
-        val file = tempFile("empty_pass.lsqrd")
+        val file = tempFile("empty-pass.lsqrd")
         val payload = BackupPayload(vaults = emptyList())
 
         ExportManager.encrypt(payload, "my-passphrase", Uri.fromFile(file), context)
