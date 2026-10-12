@@ -11,13 +11,13 @@ class PasswordGeneratorTest {
     // ── Length ───────────────────────────────────────────
 
     @Test
-    fun `default length is 16`() {
+    fun default_length_is_16() {
         val password = PasswordGenerator.generate()
         assertEquals(16, password.length)
     }
 
     @Test
-    fun `allow custom lengths`() {
+    fun allow_custom_lengths() {
         val password = PasswordGenerator.generate(length = 24)
         assertEquals(24, password.length)
     }
@@ -25,7 +25,7 @@ class PasswordGeneratorTest {
     // ── Enabled char type ───────────────────────────────────────────
 
     @Test
-    fun `always contains lowercase`() {
+    fun always_contains_lowercase() {
         val passwords = List(50) {
             PasswordGenerator.generate(useUpperCase = false, useDigits = false, useSymbols = false)
         }
@@ -33,7 +33,7 @@ class PasswordGeneratorTest {
     }
 
     @Test
-    fun `contains uppercase when enabled`() {
+    fun contains_uppercase_when_enabled() {
         val passwords = List(50) {
             PasswordGenerator.generate(useUpperCase = true)
         }
@@ -44,7 +44,7 @@ class PasswordGeneratorTest {
     }
 
     @Test
-    fun `contains digits when enabled`() {
+    fun contains_digits_when_enabled() {
         val passwords = List(50) {
             PasswordGenerator.generate(useDigits = true)
         }
@@ -55,7 +55,7 @@ class PasswordGeneratorTest {
     }
 
     @Test
-    fun `contains symbols when enabled`() {
+    fun contains_symbols_when_enabled() {
         val symbols = "!@#\$%^&*()-_=+[]{}|;:,.<>?"
         val passwords = List(50) {
             PasswordGenerator.generate(useSymbols = true)
@@ -69,7 +69,7 @@ class PasswordGeneratorTest {
     // ── Disabled char type ───────────────────────────────────────────
 
     @Test
-    fun `no uppercase when disabled`() {
+    fun no_uppercase_when_disabled() {
         val passwords = List(20) {
             PasswordGenerator.generate(useUpperCase = false)
         }
@@ -77,7 +77,7 @@ class PasswordGeneratorTest {
     }
 
     @Test
-    fun `no digits when disabled`() {
+    fun no_digits_when_disabled() {
         val passwords = List(20) {
             PasswordGenerator.generate(useDigits = false)
         }
@@ -85,7 +85,7 @@ class PasswordGeneratorTest {
     }
 
     @Test
-    fun `no symbols when disabled`() {
+    fun no_symbols_when_disabled() {
         val symbols = "!@#\$%^&*()-_=+[]{}|;:,.<>?"
         val passwords = List(20) {
             PasswordGenerator.generate(useSymbols = false)
@@ -99,7 +99,7 @@ class PasswordGeneratorTest {
     // ── Randomness ───────────────────────────────────────────
 
     @Test
-    fun `consecutive passwords are not identical`() {
+    fun consecutive_passwords_are_not_identical() {
         val passwords = List(10) { PasswordGenerator.generate() }
         assertFalse(
             "All passwords were identical - generator is random",

@@ -11,7 +11,7 @@ class BackupPayloadTest {
     // ── Round trip ─────────────────────────────────────────
 
     @Test
-    fun `full payload round trip preserves all data`() {
+    fun full_payload_round_trip_preserves_all_data() {
         val original = BackupPayload(
             vaults = listOf(
                 BackupVault(
@@ -51,14 +51,14 @@ class BackupPayloadTest {
     }
 
     @Test
-    fun `empty vaults round trip`() {
+    fun empty_vaults_round_trip() {
         val original = BackupPayload(vaults = emptyList())
         val restored = BackupPayload.fromJson(JSONObject(original.toJson()))
         assertEquals(0, restored.vaults.size)
     }
 
     @Test
-    fun `version is preserved`() {
+    fun version_is_preserved() {
         val original = BackupPayload(version = 1, vaults = emptyList())
         val restored = BackupPayload.fromJson(JSONObject(original.toJson()))
         assertEquals(1, restored.version)
@@ -67,7 +67,7 @@ class BackupPayloadTest {
     // ── Special characters ────────────────────────────────
 
     @Test
-    fun `special characters in field values are preserved`() {
+    fun special_characters_in_field_values_are_preserved() {
         val special = $$$"""p@$$w0rd!"#%&'()*+,-./:;<=>?@[\]^_`{|}~"""
         val original = BackupPayload(
             vaults = listOf(
@@ -87,7 +87,7 @@ class BackupPayloadTest {
     }
 
     @Test
-    fun `unicode characters in vault name are preserved`() {
+    fun unicode_characters_in_vault_name_are_preserved() {
         val unicodeName = "Kho 🔐 Mật Khẩu"
         val original = BackupPayload(
             vaults = listOf(
@@ -101,7 +101,7 @@ class BackupPayloadTest {
     // ── Multiple vaults ───────────────────────────────────
 
     @Test
-    fun `multiple vaults all are preserved`(){
+    fun multiple_vaults_all_are_preserved(){
         val original = BackupPayload(
             vaults = listOf(
                 BackupVault("Work", listOf(BackupCredential("Slack", emptyList()))),
