@@ -14,6 +14,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -27,6 +29,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -55,12 +58,15 @@ fun CredentialListScreen(
         viewModel.getCredentials(vaultId).collect { value = it }
     }
 
+    val vaults by viewModel.vaults.collectAsState()
+
     var showAddDialog by remember { mutableStateOf(false) }
     var credentialToDelete by remember { mutableStateOf<Credential?>(null) }
     var credentialToEdit by remember { mutableStateOf<Credential?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     var sortAscending by remember { mutableStateOf(true) }
+    var credentialToMove by remember { mutableStateOf<Credential?>(null) }
 
     val filteredCredentials = credentials.filter {
         searchQuery.isBlank() || it.name.contains(
@@ -103,8 +109,8 @@ fun CredentialListScreen(
                 },
                 actions = {
                     if (!isSearchActive) {
-                        TextButton(onClick = {sortAscending = !sortAscending}) {
-                            Text(if (sortAscending)"A→Z" else "Z→A")
+                        TextButton(onClick = { sortAscending = !sortAscending }) {
+                            Text(if (sortAscending) "A→Z" else "Z→A")
                         }
                         IconButton(onClick = { isSearchActive = true }) {
                             Icon(Icons.Default.Search, contentDescription = "Search")
@@ -149,6 +155,7 @@ fun CredentialListScreen(
                         credential = credential,
                         onClick = { onCredentialClick(credential.id) },
                         onEdit = { credentialToEdit = credential },
+                        onMove = { credentialToMove = credential },
                         onDelete = { credentialToDelete = credential }
                     )
                 }
@@ -188,12 +195,31 @@ fun CredentialListScreen(
             }
         )
     }
+
+    credentialToMove?.let { credential ->
+        MoveCredentialDialog(
+            credentialName = credential.name,
+            currentVaultId = vaultId,
+            vaults = vaults,
+            onDismiss = { credentialToMove = null },
+            onMove = { targetVault ->
+                viewModel.moveCredential(credential, targetVault.id)
+                credentialToMove = null
+            }
+        )
+    }
 }
 
 @Composable
 fun CredentialRow(
-    credential: Credential, onClick: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit
+    credential: Credential,
+    onClick: () -> Unit,
+    onEdit: () -> Unit,
+    onMove: () -> Unit,
+    onDelete: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     ListItem(
         headlineContent = { Text(credential.name, fontWeight = FontWeight.Medium) },
         trailingContent = {
@@ -201,8 +227,24 @@ fun CredentialRow(
                 IconButton(onEdit) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit credential")
                 }
-                IconButton(onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete credential")
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Move to vault") },
+                        onClick = {
+                            showMenu = false
+                            onMove()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        onClick = {
+                            showMenu = false
+                            onDelete()
+                        }
+                    )
                 }
             }
         },
