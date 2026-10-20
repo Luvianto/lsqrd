@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.lsqrd.data.PasswordGenerator
+import com.example.lsqrd.data.Vault
 
 @Composable
 fun AddVaultDialog(onDismiss: () -> Unit, onConfirm: (name: String) -> Unit) {
@@ -267,5 +268,46 @@ fun EditFieldDialog(
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
+}
+
+@Composable
+fun MoveCredentialDialog(
+    credentialName: String,
+    currentVaultId: Long,
+    vaults: List<Vault>,
+    onDismiss: () -> Unit,
+    onMove: (Vault) -> Unit,
+) {
+    val available = vaults.filter { it.id != currentVaultId }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Move \"$credentialName\"to") },
+        text = {
+            if (available.isEmpty()) {
+                Text(
+                    "No other vaults available. Create another vault first.",
+                )
+            } else {
+                Column {
+                    available.forEach { vault ->
+                        TextButton(
+                            onClick = { onMove(vault) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = vault.name,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
     )
 }
