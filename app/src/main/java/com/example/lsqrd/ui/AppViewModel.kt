@@ -74,6 +74,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         credentialDao.update(credential)
     }
 
+    fun moveCredential(credential: Credential, newVaultId: Long) = viewModelScope.launch {
+        credentialDao.update(credential.copy(vaultId = newVaultId))
+    }
+
     // ── Fields ────────────────────────────────────────────
 
     fun getCredentialWithFields(credentialId: Long): Flow<CredentialWithFields> =
