@@ -1,12 +1,15 @@
 package com.example.lsqrd.ui
 
+import android.graphics.Paint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -21,9 +24,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.lsqrd.data.PasswordGenerator
 import com.example.lsqrd.data.Vault
+import com.example.lsqrd.data.VaultDefaultCredentialField
 
 @Composable
 fun AddVaultDialog(onDismiss: () -> Unit, onConfirm: (name: String) -> Unit) {
@@ -308,6 +313,101 @@ fun MoveCredentialDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
+
+@Composable
+fun EditTemplateDialog(
+    vaultName: String,
+    templateFields: List<VaultDefaultCredentialField>,
+    onAddField: (label: String, value: String, isSecret: Boolean) -> Unit,
+    onDeleteField: (VaultDefaultCredentialField) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var newLabel by remember { mutableStateOf("") }
+    var newValue by remember { mutableStateOf("") }
+    var newIsSecret by remember { mutableStateOf(true) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Template - $vaultName") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // ── Existing template fields ──
+                if (templateFields.isEmpty()) {
+                    Text(
+                        "No default fields yet.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    templateFields.forEach { field ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(field.label, fontWeight = FontWeight.Medium)
+                                Text(
+                                    if (field.isSecret) "Hidden" else "Visible",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            IconButton(onClick = { onDeleteField(field) }) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Remove field",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
+                    HorizontalDivider()
+                }
+                Text("Add field", style = MaterialTheme.typography.labelMedium)
+                OutlinedTextField(
+                    value = newLabel,
+                    onValueChange = { newLabel = it },
+                    label = { Text("Label") },
+                    placeholder = { Text("e.g. Password, Email, PIN") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = newValue,
+                    onValueChange = { newValue = it },
+                    label = { Text("Value") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Keep hidden", modifier = Modifier.weight(1f))
+                    Switch(checked = newIsSecret, onCheckedChange = { newIsSecret = it })
+                }
+                TextButton(
+                    onClick = {
+                        onAddField(newLabel.trim(), newValue, newIsSecret)
+                        newLabel = ""
+                        newValue = ""
+                        newIsSecret = true
+                    },
+                    enabled = newLabel.isNotBlank(),
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("Add")
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Done")
+            }
         }
     )
 }
