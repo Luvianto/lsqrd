@@ -63,7 +63,7 @@ fun VaultListScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var vaultToDelete by remember { mutableStateOf<Vault?>(null) }
     var vaultToEdit by remember { mutableStateOf<Vault?>(null) }
-    var vaultForTemplate by remember { mutableStateOf<Vault?>(null) }
+    var vaultForDefaultCredentialField by remember { mutableStateOf<Vault?>(null) }
     var sortAscending by remember { mutableStateOf(true) }
 
     val context = LocalContext.current
@@ -189,7 +189,7 @@ fun VaultListScreen(
                         vault = vault,
                         onClick = { onVaultClick(vault.id) },
                         onEdit = { vaultToEdit = vault },
-                        onEditTemplate = { vaultForTemplate = vault },
+                        onEditDefaultCredentialField = { vaultForDefaultCredentialField = vault },
                         onDelete = { vaultToDelete = vault }
                     )
                 }
@@ -276,7 +276,7 @@ fun VaultListScreen(
         )
     }
 
-    vaultForTemplate?.let { vault ->
+    vaultForDefaultCredentialField?.let { vault ->
         val templateFields by produceState(emptyList<VaultDefaultCredentialField>(), vault.id) {
             viewModel.getTemplateFields(vault.id).collect { value = it }
         }
@@ -289,7 +289,7 @@ fun VaultListScreen(
             onDeleteField = { field ->
                 viewModel.deleteTemplateField(field)
             },
-            onDismiss = { vaultForTemplate = null }
+            onDismiss = { vaultForDefaultCredentialField = null }
         )
     }
 }
@@ -299,7 +299,7 @@ fun VaultRow(
     vault: Vault,
     onClick: () -> Unit,
     onEdit: () -> Unit,
-    onEditTemplate: () -> Unit,
+    onEditDefaultCredentialField: () -> Unit,
     onDelete: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -337,10 +337,10 @@ fun VaultRow(
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Edit template") },
+                            text = { Text("Edit Default Credential Field") },
                             onClick = {
                                 showMenu = false
-                                onEditTemplate()
+                                onEditDefaultCredentialField()
                             }
                         )
                         DropdownMenuItem(
