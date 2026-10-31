@@ -29,4 +29,16 @@ interface VaultDao {
 
     @Delete
     suspend fun delete(vault: Vault)
+
+    @Query("SELECT * FROM vault_default_credential_fields WHERE vaultId = :vaultId ORDER BY position ASC")
+    fun getDefaultCredentialFields(vaultId: Long): Flow<List<VaultDefaultCredentialField>>
+
+    @Insert
+    suspend fun insertDefaultCredentialField(field: VaultDefaultCredentialField): Long
+
+    @Delete
+    suspend fun deleteDefaultCredentialField(field: VaultDefaultCredentialField)
+
+    @Query("DELETE FROM vault_default_credential_fields WHERE vaultId = :vaultId")
+    suspend fun clearDefaultCredentialFields(vaultId: Long)
 }
