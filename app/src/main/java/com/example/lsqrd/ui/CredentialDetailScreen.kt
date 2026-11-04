@@ -14,6 +14,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -63,6 +66,9 @@ fun CredentialDetailScreen(
     var fieldToDelete by remember { mutableStateOf<CredentialField?>(null) }
     var fieldToEdit by remember { mutableStateOf<CredentialField?>(null) }
 
+    var showMenu by remember { mutableStateOf(false) }
+    var showWebShareDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -75,6 +81,25 @@ fun CredentialDetailScreen(
                         )
                     }
                 },
+                actions = {
+                    Box {
+                        IconButton(onClick = {showMenu = true}) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "More Options")
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = {showMenu = false}
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text ("Send to computer") },
+                                onClick = {
+                                    showMenu = false
+                                    showWebShareDialog = true
+                                }
+                            )
+                        }
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -125,6 +150,14 @@ fun CredentialDetailScreen(
                 viewModel.addField(credentialId, label, value, isSecret)
                 showAddDialog = false
             }
+        )
+    }
+
+    if (showWebShareDialog) {
+        WebShareDialog(
+            credentialName = credentialWithFields?.credential?.name ?: "Credential",
+            fields = fields,
+            onDismiss = { showWebShareDialog = false },
         )
     }
 

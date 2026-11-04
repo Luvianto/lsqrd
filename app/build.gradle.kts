@@ -63,4 +63,5 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.sqlcipher)
+    implementation(libs.nanohttpd)
 }
