@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
@@ -40,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.lsqrd.data.Vault
+import com.example.lsqrd.data.VaultDefaultCredentialField
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -62,6 +63,7 @@ fun VaultListScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var vaultToDelete by remember { mutableStateOf<Vault?>(null) }
     var vaultToEdit by remember { mutableStateOf<Vault?>(null) }
+    var vaultForDefaultCredentialField by remember { mutableStateOf<Vault?>(null) }
     var sortAscending by remember { mutableStateOf(true) }
 
     val context = LocalContext.current
@@ -74,7 +76,7 @@ fun VaultListScreen(
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/octet-stream")
     ) { uri ->
-        if(uri != null){
+        if (uri != null) {
             viewModel.exportAll(
                 passphrase = exportPassphrase,
                 uri = uri,
@@ -83,7 +85,7 @@ fun VaultListScreen(
                     exportPassphrase = ""
                     Toast.makeText(context, "Export successful", Toast.LENGTH_SHORT).show()
                 },
-                onError = {error ->
+                onError = { error ->
                     exportPassphrase = ""
                     Toast.makeText(context, "Export failed: $error", Toast.LENGTH_LONG).show()
                 }
@@ -94,7 +96,7 @@ fun VaultListScreen(
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
-        if (uri != null){
+        if (uri != null) {
             pendingImportUri = uri
             showImportDialog = true
         }
@@ -114,23 +116,23 @@ fun VaultListScreen(
                     TextButton(onClick = { sortAscending = !sortAscending }) {
                         Text(if (sortAscending) "A→Z" else "Z→A")
                     }
-                    Box{
-                        IconButton(onClick = {showMenu = true}) {
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "More options")
                         }
                         DropdownMenu(
                             expanded = showMenu,
-                            onDismissRequest = {showMenu = false}
+                            onDismissRequest = { showMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = {Text("Export")},
+                                text = { Text("Export") },
                                 onClick = {
                                     showMenu = false
                                     showExportDialog = true
                                 }
                             )
                             DropdownMenuItem(
-                                text = {Text("Import")},
+                                text = { Text("Import") },
                                 onClick = {
                                     showMenu = false
                                     importLauncher.launch(arrayOf("*/*"))
@@ -187,6 +189,7 @@ fun VaultListScreen(
                         vault = vault,
                         onClick = { onVaultClick(vault.id) },
                         onEdit = { vaultToEdit = vault },
+                        onEditDefaultCredentialField = { vaultForDefaultCredentialField = vault },
                         onDelete = { vaultToDelete = vault }
                     )
                 }
@@ -204,10 +207,10 @@ fun VaultListScreen(
         )
     }
 
-    if(showExportDialog){
+    if (showExportDialog) {
         ExportDialog(
             onDismiss = { showExportDialog = false },
-            onExport = {passphrase ->
+            onExport = { passphrase ->
                 showExportDialog = false
                 exportPassphrase = passphrase
                 val date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
@@ -217,8 +220,8 @@ fun VaultListScreen(
     }
 
     pendingImportUri?.let { uri ->
-        if (showImportDialog){
-            val fileName = uri.lastPathSegment?:"backup file"
+        if (showImportDialog) {
+            val fileName = uri.lastPathSegment ?: "backup file"
             ImportDialog(
                 fileName = fileName,
                 onDismiss = {
@@ -239,9 +242,10 @@ fun VaultListScreen(
                                 Toast.LENGTH_LONG
                             ).show()
                         },
-                        onError = {error ->
+                        onError = { error ->
                             pendingImportUri = null
-                            Toast.makeText(context, "Import failed: $error", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Import failed: $error", Toast.LENGTH_LONG)
+                                .show()
                         }
                     )
                 }
@@ -271,11 +275,37 @@ fun VaultListScreen(
             }
         )
     }
+
+    vaultForDefaultCredentialField?.let { vault ->
+        val templateFields by produceState(emptyList<VaultDefaultCredentialField>(), vault.id) {
+            viewModel.getTemplateFields(vault.id).collect { value = it }
+        }
+        EditTemplateDialog(
+            vaultName = vault.name,
+            templateFields = templateFields,
+            onAddField = { label, value, isSecret ->
+                viewModel.addTemplateField(vault.id, label, value, isSecret)
+            },
+            onDeleteField = { field ->
+                viewModel.deleteTemplateField(field)
+            },
+            onDismiss = { vaultForDefaultCredentialField = null }
+        )
+    }
 }
 
 @Composable
-fun VaultRow(vault: Vault, onClick: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+fun VaultRow(
+    vault: Vault,
+    onClick: () -> Unit,
+    onEdit: () -> Unit,
+    onEditDefaultCredentialField: () -> Unit,
+    onDelete: () -> Unit
+) {
+    var showMenu by remember { mutableStateOf(false) }
+
     ListItem(
+        modifier = Modifier.clickable { onClick() },
         headlineContent = { Text(vault.name, fontWeight = FontWeight.Medium) },
         leadingContent = {
             Box(
@@ -298,12 +328,32 @@ fun VaultRow(vault: Vault, onClick: () -> Unit, onEdit: () -> Unit, onDelete: ()
                 IconButton(onClick = onEdit) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit Vault")
                 }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete Vault")
+                Box {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Edit Default Credential Field") },
+                            onClick = {
+                                showMenu = false
+                                onEditDefaultCredentialField()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                            onClick = {
+                                showMenu = false
+                                onDelete()
+                            }
+                        )
+                    }
                 }
             }
-        },
-        modifier = Modifier.clickable { onClick() }
+        }
     )
     HorizontalDivider()
 }

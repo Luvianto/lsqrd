@@ -25,19 +25,31 @@ class VaultRowTest {
     fun vaultRow_showsVaultName() {
         composeTestRule.setContent {
             LsqrdTheme {
-                VaultRow(vault = testVault, onClick = {}, onEdit = {}, onDelete = {})
+                VaultRow(
+                    vault = testVault,
+                    onClick = {},
+                    onEdit = {},
+                    onEditDefaultCredentialField = {},
+                    onDelete = {}
+                )
             }
         }
         composeTestRule.onNodeWithText("Work").assertIsDisplayed()
     }
 
     @Test
-    fun vaultRow_clickingRow_callsOnClick(){
+    fun vaultRow_clickingRow_callsOnClick() {
         var clicked = false
 
         composeTestRule.setContent {
             LsqrdTheme {
-                VaultRow(vault = testVault, onClick = {clicked = true}, onEdit = {}, onDelete = {})
+                VaultRow(
+                    vault = testVault,
+                    onClick = { clicked = true },
+                    onEdit = {},
+                    onEditDefaultCredentialField = {},
+                    onDelete = {}
+                )
             }
         }
 
@@ -46,12 +58,18 @@ class VaultRowTest {
     }
 
     @Test
-    fun vaultRow_clickingDelete_callsOnEdit(){
+    fun vaultRow_clickingDelete_callsOnEdit() {
         var edited = false
 
         composeTestRule.setContent {
             LsqrdTheme {
-                VaultRow(vault = testVault, onClick = {}, onEdit = {edited = true}, onDelete = {})
+                VaultRow(
+                    vault = testVault,
+                    onClick = {},
+                    onEdit = { edited = true },
+                    onEditDefaultCredentialField = {},
+                    onDelete = {}
+                )
             }
         }
 
@@ -60,16 +78,44 @@ class VaultRowTest {
     }
 
     @Test
-    fun vaultRow_clickingDelete_callsOnDelete(){
+    fun vaultRow_clickingMoreVert_then_delete_callsOnDelete() {
         var deleted = false
 
         composeTestRule.setContent {
             LsqrdTheme {
-                VaultRow(vault = testVault, onClick = {}, onEdit = {}, onDelete = {deleted = true})
+                VaultRow(
+                    vault = testVault,
+                    onClick = {},
+                    onEdit = {},
+                    onEditDefaultCredentialField = {},
+                    onDelete = { deleted = true }
+                )
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Delete Vault").performClick()
+        composeTestRule.onNodeWithContentDescription("More options").performClick()
+        composeTestRule.onNodeWithText("Delete").performClick()
         assertTrue("onDelete should have been called", deleted)
+    }
+
+    @Test
+    fun vaultRow_clickingMoreVert_then_editDefaultCredentialFields_callsOnEditDefaultCredentialField() {
+        var defaultCredentialFieldEdited = false
+
+        composeTestRule.setContent {
+            LsqrdTheme {
+                VaultRow(
+                    vault = testVault,
+                    onClick = {},
+                    onEdit = {},
+                    onEditDefaultCredentialField = {defaultCredentialFieldEdited = true},
+                    onDelete = {  }
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription("More options").performClick()
+        composeTestRule.onNodeWithText("Edit Default Credential Field").performClick()
+        assertTrue("onEditDefaultCredentialField should have been called", defaultCredentialFieldEdited)
     }
 }

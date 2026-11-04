@@ -5,19 +5,18 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lsqrd.data.AppDatabase
 import com.example.lsqrd.data.BackupCredential
 import com.example.lsqrd.data.BackupField
 import com.example.lsqrd.data.BackupPayload
 import com.example.lsqrd.data.BackupVault
 import com.example.lsqrd.data.Credential
-
 import com.example.lsqrd.data.CredentialField
 import com.example.lsqrd.data.CredentialWithFields
 import com.example.lsqrd.data.CryptoManager
 import com.example.lsqrd.data.ExportManager
 import com.example.lsqrd.data.Vault
+import com.example.lsqrd.data.VaultDefaultCredentialField
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -63,7 +62,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         credentialDao.getAllCredentials(vaultId)
 
     fun addCredential(vaultId: Long, name: String) = viewModelScope.launch {
-        credentialDao.insert(Credential(vaultId = vaultId, name = name))
+        val credId = credentialDao.insert(Credential(vaultId = vaultId, name = name))
+        val templateFields = vaultDao.getDefaultCredentialFields(vaultId).first()
+        templateFields.forEach { template ->
+            credentialFieldDao.insert(
+                CredentialField(
+                    credentialId = credId,
+                    label = template.label,
+                    value = CryptoManager.encrypt(""),
+                    isSecret = template.isSecret
+                )
+            )
+        }
     }
 
     fun deleteCredential(credential: Credential) = viewModelScope.launch {
@@ -105,6 +115,29 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateField(field: CredentialField) = viewModelScope.launch {
         credentialFieldDao.update(field.copy(value = CryptoManager.encrypt(field.value)))
+    }
+
+    // ── Template Fields ───────────────────────────────────
+
+    fun getTemplateFields(vaultId: Long): Flow<List<VaultDefaultCredentialField>> =
+        vaultDao.getDefaultCredentialFields(vaultId)
+
+    fun addTemplateField(vaultId: Long, label: String, value: String, isSecret: Boolean) =
+        viewModelScope.launch {
+            val position = vaultDao.getDefaultCredentialFields(vaultId).first().size
+            vaultDao.insertDefaultCredentialField(
+                VaultDefaultCredentialField(
+                    vaultId = vaultId,
+                    label = label,
+                    value = value,
+                    isSecret = isSecret,
+                    position = position
+                )
+            )
+        }
+
+    fun deleteTemplateField(field: VaultDefaultCredentialField) = viewModelScope.launch {
+        vaultDao.deleteDefaultCredentialField(field)
     }
 
     // ── Export / Import ───────────────────────────────────
@@ -202,7 +235,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             withContext(Dispatchers.Main) { onSuccess(result) }
         } catch (e: SecurityException) {
             withContext(Dispatchers.Main) { onError("Wrong passphrase or invalid file") }
-        }catch (e: Exception) {
+        } catch (e: Exception) {
             withContext(Dispatchers.Main) { onError(e.message ?: "Import Failed") }
         }
     }
