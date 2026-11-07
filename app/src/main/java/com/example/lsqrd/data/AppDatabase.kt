@@ -28,7 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     """
-                    CREATE TABLE IF NOT EXIST vault_default_credential_fields (
+                    CREATE TABLE IF NOT EXISTS vault_default_credential_fields (
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                         vaultId INTEGER NOT NULL,
                         label TEXT NOT NULL,
