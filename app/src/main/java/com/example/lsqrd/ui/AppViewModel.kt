@@ -69,7 +69,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 CredentialField(
                     credentialId = credId,
                     label = template.label,
-                    value = CryptoManager.encrypt(""),
+                    value = CryptoManager.encrypt(template.value),
                     isSecret = template.isSecret
                 )
             )
