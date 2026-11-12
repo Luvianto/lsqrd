@@ -172,23 +172,23 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun mergeBackup(payload: BackupPayload): ImportResult {
-        val existingVaultNames = vaultDao.getAllVaults().first().map {
-            it.name
-        }.toSet()
+        val existingVaultNames = vaultDao.getAllVaults().first()
+            .map { it.name }.toMutableSet()
+
         var vaultsCount = 0
         var credentialsCount = 0
 
         for (backupVault in payload.vaults) {
-            val vaultName = uniqueName(backupVault.name, existingVaultNames.toMutableSet().also { })
-            vaultDao.insert(Vault(name = vaultName))
-            val newVaultId = vaultDao.getAllVaults().first().first { it.name == vaultName }.id
+            val vaultName = uniqueName(backupVault.name, existingVaultNames)
+            existingVaultNames.add(vaultName)
+
+            val newVaultId = vaultDao.insert(Vault(name = vaultName))
             vaultsCount++
 
             for (backupCred in backupVault.credentials) {
-                credentialDao.insert(Credential(vaultId = newVaultId, name = backupCred.name))
-                val newCredId = credentialDao.getAllCredentials(newVaultId).first().first {
-                    it.name == backupCred.name
-                }.id
+                val newCredId = credentialDao.insert(
+                        Credential(vaultId = newVaultId, name = backupCred.name)
+                )
                 credentialsCount++
 
                 for (backupField in backupCred.fields) {

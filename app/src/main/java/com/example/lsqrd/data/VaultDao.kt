@@ -22,7 +22,7 @@ interface VaultDao {
     fun getVaultWithCredetials(vaultId: Long): Flow<VaultWithCredentials?>
 
     @Insert
-    suspend fun insert(vault: Vault)
+    suspend fun insert(vault: Vault): Long
 
     @Update
     suspend fun update(vault: Vault)
