@@ -21,6 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.lsqrd.data.CredentialField
 import com.example.lsqrd.data.LocalWebServer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 @Composable
 fun WebShareDialog(
@@ -31,32 +34,43 @@ fun WebShareDialog(
     val token = remember {
         (1..8).map { "abcdefghijklmnopqrstuvwxyz0123456789".random() }.joinToString("")
     }
-    val port = remember { LocalWebServer.findAvailablePort() }
-    val server = remember { LocalWebServer(port, credentialName, fields, token) }
+    var server by remember { mutableStateOf<LocalWebServer?>(null) }
+    var port by remember { mutableStateOf(0) }
 
-    val url by remember { mutableStateOf<String?>(null) }
+    var url by remember { mutableStateOf<String?>(null) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
-    val timeLeft by remember { mutableIntStateOf(300) }
+    var timeLeft by remember { mutableIntStateOf(300) }
 
     LaunchedEffect(Unit) {
         try {
-            server.start()
+            val p = withContext(Dispatchers.IO) { LocalWebServer.findAvailablePort() }
+            port = p
+            val s = LocalWebServer(p, credentialName, fields, token)
+            withContext(Dispatchers.IO) { s.start() }
+            server = s
             val ip = LocalWebServer.getLocalIpAddress()
             if (ip == null) {
                 errorMsg = "Not connected to Wi-Fi. Connect and try again."
                 return@LaunchedEffect
             }
+            url = "http://$ip:$port/$token"
+            while (timeLeft > 0) {
+                delay(1000L)
+                timeLeft--
+            }
+            runCatching { s.stop() }
+            onDismiss()
         } catch (e: Exception) {
             errorMsg = "Could not start the server: ${e.message}"
         }
     }
 
     DisposableEffect(Unit) {
-        onDispose { runCatching { server.stop() } }
+        onDispose { runCatching { server?.stop() } }
     }
 
     AlertDialog(
-        onDismissRequest = { runCatching { server.stop() }; onDismiss() },
+        onDismissRequest = { runCatching { server?.stop() }; onDismiss() },
         title = { Text("Send to computer") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -94,7 +108,7 @@ fun WebShareDialog(
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = {runCatching { server.stop() }; onDismiss()}) {
+            TextButton(onClick = { runCatching { server?.stop() }; onDismiss() }) {
                 Text("Stop")
             }
         },
