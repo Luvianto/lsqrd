@@ -1,10 +1,10 @@
 package com.example.lsqrd.data
 
-import android.net.InetAddresses
+import android.content.Context
+import android.net.ConnectivityManager
 import fi.iki.elonen.NanoHTTPD
 import java.io.IOException
-import java.net.InetAddress
-import java.net.NetworkInterface
+import java.net.Inet4Address
 import java.net.ServerSocket
 
 class LocalWebServer(
@@ -27,7 +27,7 @@ class LocalWebServer(
                     <div class="label">${escapeHtml(field.label)}</div>
                     <div class="value-row">
                         <span class="value">${escapeHtml(field.value)}</span>
-                        <button onclick="copyValue('${escapeJs(field.value)}'}, this)">Copy</button>
+                        <button onclick="copyValue('${escapeJs(field.value)}', this)">Copy</button>
                     </div>
                 </div>
             """.trimIndent()
@@ -43,10 +43,12 @@ class LocalWebServer(
         s.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n").replace("\r", "\\r")
 
     companion object {
-        fun getLocalIpAddress(): String? = try {
-            NetworkInterface.getNetworkInterfaces()?.toList()
-                ?.flatMap { it.inetAddresses?.toList() ?: emptyList() }
-                ?.firstOrNull { !it.isLoopbackAddress && it is InetAddress }?.hostAddress
+        fun getLocalIpAddress(context: Context): String? = try {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val network = cm.activeNetwork ?: return null
+            val props = cm.getLinkProperties(network) ?: return null
+            props.linkAddresses.map { it.address }.filterIsInstance<Inet4Address>()
+                .firstOrNull { !it.isLoopbackAddress && !it.isLinkLocalAddress }?.hostAddress
         } catch (e: Exception) {
             null
         }
@@ -87,7 +89,7 @@ class LocalWebServer(
                         border-radius: 12px;
                         padding: 16px 20px;
                         margin: 10px 0;
-                        box-shadow: 0 1px 4 px rgba(0, 0, 0, .08);
+                        box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
                     }
                     .label {
                         font-size: .75em;
@@ -136,7 +138,7 @@ class LocalWebServer(
                 function copyValue(v, btn) {
                     if(navigator.clipboard) {
                         navigator.clipboard.writeText(v).then(()=>ok(btn)).catch(()=>fb(v, btn));
-                    }
+                    } else { fb(v, btn); }
                 }
                 function fb(v, btn) {
                     var t = document.createElement('textarea');
