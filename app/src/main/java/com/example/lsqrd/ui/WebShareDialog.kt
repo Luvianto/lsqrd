@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,6 +32,7 @@ fun WebShareDialog(
     fields: List<CredentialField>,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
     val token = remember {
         (1..8).map { "abcdefghijklmnopqrstuvwxyz0123456789".random() }.joinToString("")
     }
@@ -48,7 +50,7 @@ fun WebShareDialog(
             val s = LocalWebServer(p, credentialName, fields, token)
             withContext(Dispatchers.IO) { s.start() }
             server = s
-            val ip = LocalWebServer.getLocalIpAddress()
+            val ip = LocalWebServer.getLocalIpAddress(context)
             if (ip == null) {
                 errorMsg = "Not connected to Wi-Fi. Connect and try again."
                 return@LaunchedEffect
