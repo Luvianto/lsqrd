@@ -136,7 +136,7 @@ class LocalWebServer(
                 function copyValue(v, btn) {
                     if(navigator.clipboard) {
                         navigator.clipboard.writeText(v).then(()=>ok(btn)).catch(()=>fb(v, btn));
-                    }
+                    } else { fb(v, btn); }
                 }
                 function fb(v, btn) {
                     var t = document.createElement('textarea');
