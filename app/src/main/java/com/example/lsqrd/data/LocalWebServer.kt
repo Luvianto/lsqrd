@@ -27,7 +27,7 @@ class LocalWebServer(
                     <div class="label">${escapeHtml(field.label)}</div>
                     <div class="value-row">
                         <span class="value">${escapeHtml(field.value)}</span>
-                        <button onclick="copyValue('${escapeJs(field.value)}'}, this)">Copy</button>
+                        <button onclick="copyValue('${escapeJs(field.value)}', this)">Copy</button>
                     </div>
                 </div>
             """.trimIndent()
