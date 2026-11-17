@@ -14,32 +14,33 @@ fun AppNavGraph(appViewModel: AppViewModel = viewModel()) {
 
     NavHost(
         navController = navController,
-        startDestination = "vaults",
+        startDestination = "home",
     ) {
-        composable("vaults") {
-            VaultListScreen(
+        composable("home") {
+            HomeScreen (
                 viewModel = appViewModel,
-                onVaultClick = { vaultId ->
-                    navController.navigate("credentials/$vaultId")
+                onCredentialClick = { credentialId ->
+                    navController.navigate("credentials/$credentialId/fields")
+                },
+                onVaultView = {vaultId ->
+                    navController.navigate("vaults/$vaultId")
                 }
             )
         }
         composable(
-            "credentials/{vaultId}",
+            "vaults/{vaultId}",
             arguments = listOf(navArgument("vaultId") { type = NavType.LongType })
         ) { backStackEntry ->
             val vaultId = backStackEntry.arguments!!.getLong("vaultId")
-            CredentialListScreen(
+            VaultDetailScreen (
                 viewModel = appViewModel,
                 vaultId = vaultId,
-                onCredentialClick = { credentialId ->
-                    navController.navigate("fields/$credentialId")
-                },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onDeleted = { navController.popBackStack() }
             )
         }
         composable(
-            "fields/{credentialId}",
+            "credentials/{credentialId}/fields",
             arguments = listOf(navArgument("credentialId") { type = NavType.LongType })
         ) { backStackEntry ->
             val credentialId = backStackEntry.arguments!!.getLong("credentialId")
