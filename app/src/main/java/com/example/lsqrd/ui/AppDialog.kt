@@ -134,7 +134,7 @@ fun AddCredentialDialog(
 }
 
 @Composable
-fun AddFieldDialog(
+fun AddVaultDefaultCredentialFieldDialog(
     onDismiss: () -> Unit,
     onConfirm: (label: String, value: String, isSecret: Boolean) -> Unit
 ) {
