@@ -9,6 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,23 +58,74 @@ fun AddVaultDialog(onDismiss: () -> Unit, onConfirm: (name: String) -> Unit) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddCredentialDialog(onDismiss: () -> Unit, onConfirm: (name: String) -> Unit) {
+fun AddCredentialDialog(
+    vaults: List<Vault>,
+    preselectedVaultId: Long?,
+    onDismiss: () -> Unit,
+    onConfirm: (vaultId: Long, name: String) -> Unit
+) {
     var name by remember { mutableStateOf("") }
+    var selectedVaultId by remember {
+        mutableStateOf(preselectedVaultId ?: vaults.firstOrNull()?.id)
+    }
+    var vaultMenuExpanded by remember { mutableStateOf(false) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("New Credential") },
         text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Credential name") },
-                supportingText = { Text("e.g Instagram, Facebook, Linkedin") },
-                singleLine = true
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Credential name") },
+                    supportingText = { Text("e.g Instagram, Facebook, Linkedin") },
+                    singleLine = true
+                )
+
+                if (preselectedVaultId == null) {
+                    ExposedDropdownMenuBox(
+                        expanded = vaultMenuExpanded,
+                        onExpandedChange = { vaultMenuExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = vaults.find { it.id == selectedVaultId }?.name ?: "Select",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Vault") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(vaultMenuExpanded)
+                            },
+                            modifier = Modifier.menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = vaultMenuExpanded,
+                            onDismissRequest = { vaultMenuExpanded = false }
+                        ) {
+                            vaults.forEach { vault ->
+                                DropdownMenuItem(
+                                    text = { Text(vault.name) },
+                                    onClick = {
+                                        selectedVaultId = vault.id
+                                        vaultMenuExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(name.trim()) }, enabled = name.isNotBlank()) {
+            TextButton(
+                onClick = {
+                    selectedVaultId?.let { onConfirm(it, name.trim()) }
+                }, enabled = name.isNotBlank() && selectedVaultId != null
+            ) {
                 Text("Add")
             }
         },

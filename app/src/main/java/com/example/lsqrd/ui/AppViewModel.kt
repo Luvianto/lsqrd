@@ -19,9 +19,12 @@ import com.example.lsqrd.data.Vault
 import com.example.lsqrd.data.VaultDefaultCredentialField
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -55,6 +58,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun updateVault(vault: Vault) = viewModelScope.launch {
         vaultDao.update(vault)
     }
+
+    // ── Vault filter (home screen) ───────────────────────
+
+    val selectedVaultId = MutableStateFlow<Long?>(null)
+
+    val filteredCredentials: StateFlow<List<Credential>> = selectedVaultId.flatMapLatest { vaultId ->
+        if (vaultId == null) credentialDao.getAllCredentials()
+        else credentialDao.getAllCredentials(vaultId)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // ── Credentials ──────────────────────────────────────
 
