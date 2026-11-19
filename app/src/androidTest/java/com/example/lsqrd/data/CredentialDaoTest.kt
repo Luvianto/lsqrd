@@ -3,6 +3,7 @@ package com.example.lsqrd.data
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -110,5 +111,15 @@ class CredentialDaoTest {
 
         val credentials = credentialDao.getAllCredentials(testVaultId).first()
         Assert.assertEquals(0, credentials.size)
+    }
+
+    @Test
+    fun getAllCredentials_no_filter_returns_all_vaults() = runBlocking {
+        val vault2Id = vaultDao.insert(Vault(name="Personal"))
+        credentialDao.insert(Credential(vaultId = testVaultId, name = "Github"))
+        credentialDao.insert(Credential(vaultId = vault2Id, name = "Gmail"))
+
+        val all = credentialDao.getAllCredentials().first()
+        assertEquals(2, all.size)
     }
 }
