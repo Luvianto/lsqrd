@@ -144,7 +144,7 @@ fun CredentialDetailScreen(
     }
 
     if (showAddDialog) {
-        AddFieldDialog(
+        AddVaultDefaultCredentialFieldDialog(
             onDismiss = { showAddDialog = false },
             onConfirm = { label, value, isSecret ->
                 viewModel.addField(credentialId, label, value, isSecret)

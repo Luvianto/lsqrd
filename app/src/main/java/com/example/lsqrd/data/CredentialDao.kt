@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CredentialDao {
 
+    @Query("SELECT * FROM credentials ORDER BY name ASC")
+    fun getAllCredentials(): Flow<List<Credential>>
+
     @Query("SELECT * FROM credentials WHERE vaultId = :vaultId ORDER BY name ASC")
     fun getAllCredentials(vaultId: Long): Flow<List<Credential>>
 
@@ -19,7 +22,7 @@ interface CredentialDao {
 
     @Transaction
     @Query("SELECT * FROM credentials WHERE vaultId = :vaultId ORDER BY name ASC")
-    fun getCredetialsWithFieldsByVault(vaultId: Long): Flow<List<CredentialWithFields>>
+    fun getCredentialsWithFieldsByVault(vaultId: Long): Flow<List<CredentialWithFields>>
 
     @Insert
     suspend fun insert(credential: Credential): Long

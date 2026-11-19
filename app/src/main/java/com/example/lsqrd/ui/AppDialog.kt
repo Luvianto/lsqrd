@@ -9,6 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,23 +58,74 @@ fun AddVaultDialog(onDismiss: () -> Unit, onConfirm: (name: String) -> Unit) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddCredentialDialog(onDismiss: () -> Unit, onConfirm: (name: String) -> Unit) {
+fun AddCredentialDialog(
+    vaults: List<Vault>,
+    preselectedVaultId: Long?,
+    onDismiss: () -> Unit,
+    onConfirm: (vaultId: Long, name: String) -> Unit
+) {
     var name by remember { mutableStateOf("") }
+    var selectedVaultId by remember {
+        mutableStateOf(preselectedVaultId ?: vaults.firstOrNull()?.id)
+    }
+    var vaultMenuExpanded by remember { mutableStateOf(false) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("New Credential") },
         text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Credential name") },
-                supportingText = { Text("e.g Instagram, Facebook, Linkedin") },
-                singleLine = true
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Credential name") },
+                    supportingText = { Text("e.g Instagram, Facebook, Linkedin") },
+                    singleLine = true
+                )
+
+                if (preselectedVaultId == null) {
+                    ExposedDropdownMenuBox(
+                        expanded = vaultMenuExpanded,
+                        onExpandedChange = { vaultMenuExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = vaults.find { it.id == selectedVaultId }?.name ?: "Select",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Vault") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(vaultMenuExpanded)
+                            },
+                            modifier = Modifier.menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = vaultMenuExpanded,
+                            onDismissRequest = { vaultMenuExpanded = false }
+                        ) {
+                            vaults.forEach { vault ->
+                                DropdownMenuItem(
+                                    text = { Text(vault.name) },
+                                    onClick = {
+                                        selectedVaultId = vault.id
+                                        vaultMenuExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(name.trim()) }, enabled = name.isNotBlank()) {
+            TextButton(
+                onClick = {
+                    selectedVaultId?.let { onConfirm(it, name.trim()) }
+                }, enabled = name.isNotBlank() && selectedVaultId != null
+            ) {
                 Text("Add")
             }
         },
@@ -79,7 +134,7 @@ fun AddCredentialDialog(onDismiss: () -> Unit, onConfirm: (name: String) -> Unit
 }
 
 @Composable
-fun AddFieldDialog(
+fun AddVaultDefaultCredentialFieldDialog(
     onDismiss: () -> Unit,
     onConfirm: (label: String, value: String, isSecret: Boolean) -> Unit
 ) {
@@ -313,101 +368,6 @@ fun MoveCredentialDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
-    )
-}
-
-@Composable
-fun EditTemplateDialog(
-    vaultName: String,
-    templateFields: List<VaultDefaultCredentialField>,
-    onAddField: (label: String, value: String, isSecret: Boolean) -> Unit,
-    onDeleteField: (VaultDefaultCredentialField) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var newLabel by remember { mutableStateOf("") }
-    var newValue by remember { mutableStateOf("") }
-    var newIsSecret by remember { mutableStateOf(true) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Template - $vaultName") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // ── Existing template fields ──
-                if (templateFields.isEmpty()) {
-                    Text(
-                        "No default fields yet.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                } else {
-                    templateFields.forEach { field ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(Modifier.weight(1f)) {
-                                Text(field.label, fontWeight = FontWeight.Medium)
-                                Text(
-                                    if (field.isSecret) "Hidden" else "Visible",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            IconButton(onClick = { onDeleteField(field) }) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = "Remove field",
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        }
-                    }
-                    HorizontalDivider()
-                }
-                Text("Add field", style = MaterialTheme.typography.labelMedium)
-                OutlinedTextField(
-                    value = newLabel,
-                    onValueChange = { newLabel = it },
-                    label = { Text("Label") },
-                    placeholder = { Text("e.g. Password, Email, PIN") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = newValue,
-                    onValueChange = { newValue = it },
-                    label = { Text("Value") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Keep hidden", modifier = Modifier.weight(1f))
-                    Switch(checked = newIsSecret, onCheckedChange = { newIsSecret = it })
-                }
-                TextButton(
-                    onClick = {
-                        onAddField(newLabel.trim(), newValue, newIsSecret)
-                        newLabel = ""
-                        newValue = ""
-                        newIsSecret = true
-                    },
-                    enabled = newLabel.isNotBlank(),
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text("Add")
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Done")
-            }
         }
     )
 }
