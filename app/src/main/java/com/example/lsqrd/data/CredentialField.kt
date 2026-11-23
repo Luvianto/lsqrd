@@ -23,5 +23,6 @@ data class CredentialField(
     val credentialId: Long,
     val label: String,
     val value: String,
-    val isSecret: Boolean = true
+    val isSecret: Boolean = true,
+    val isTOTP: Boolean = true
 )
