@@ -109,14 +109,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             })
         }
 
-    fun addField(credentialId: Long, label: String, value: String, isSecret: Boolean) =
+    fun addField(credentialId: Long, label: String, value: String, isSecret: Boolean, isTotp: Boolean) =
         viewModelScope.launch {
             credentialFieldDao.insert(
                 CredentialField(
                     credentialId = credentialId,
                     label = label,
                     value = CryptoManager.encrypt(value),
-                    isSecret = isSecret
+                    isSecret = isSecret,
+                    isTOTP = isTotp
                 )
             )
         }
